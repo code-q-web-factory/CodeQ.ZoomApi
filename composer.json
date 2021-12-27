@@ -1,5 +1,5 @@
 {
-    "name": "codeq/zoom",
+    "name": "codeq/zoom-api",
     "description": "Gets upcoming Zoom meetings and Zoom recordings via Eel Helper",
     "type": "neos-package",
     "require": {
