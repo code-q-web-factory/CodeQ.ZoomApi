@@ -2,6 +2,7 @@
     "name": "codeq/zoom-api",
     "description": "Gets upcoming Zoom meetings and Zoom recordings via Eel Helper",
     "type": "neos-package",
+    "license": "GPL-3.0-or-later",
     "require": {
         "neos/neos":  "^5.0 || ^7.0 || dev-master",
         "guzzlehttp/guzzle": "^7.4",
@@ -11,6 +12,22 @@
         "psr-4": {
             "CodeQ\\Zoom\\": "Classes/"
         }
+    },
+    "authors": [
+        {
+            "name": "Roland Schütz",
+            "email": "rs@codeq.at",
+            "homepage": "https://codeq.at",
+            "role": "Developer"
+        }
+    ],
+    "archive": {
+        "exclude": [
+            ".editorconfig",
+            ".gitattributes",
+            ".github",
+            ".gitignore"
+        ]
     },
     "extra": {
         "neos": {
