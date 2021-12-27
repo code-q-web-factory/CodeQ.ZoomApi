@@ -1,5 +1,5 @@
-[![Latest Stable Version](https://poser.pugx.org/code-q-web-factory/CodeQ.ZoomApiApi/v/stable)](https://packagist.org/packages/code-q-web-factory/CodeQ.ZoomApiApi)
-[![License](https://poser.pugx.org/code-q-web-factory/CodeQ.ZoomApiApi/license)](LICENSE)
+[![Latest Stable Version](https://poser.pugx.org/codeq/zoom-api/v/stable)](https://packagist.org/packages/codeq/zoom-api)
+[![License](https://poser.pugx.org/codeq/zoom-api/license)](LICENSE)
 
 # CodeQ.ZoomApi
 
