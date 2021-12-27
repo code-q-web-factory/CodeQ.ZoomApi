@@ -10,7 +10,7 @@
     },
     "autoload": {
         "psr-4": {
-            "CodeQ\\Zoom\\": "Classes/"
+            "CodeQ\\ZoomApi\\": "Classes/"
         }
     },
     "authors": [
