@@ -1,0 +1,10 @@
+CodeQ:
+  ZoomApi:
+    auth:
+      apiKey: ''
+      apiSecret: ''
+
+Neos:
+  Fusion:
+    defaultContext:
+      'CodeQ.ZoomApi': 'CodeQ\ZoomApi\Eel\ZoomApiHelper'

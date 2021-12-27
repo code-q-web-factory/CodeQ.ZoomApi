@@ -1,0 +1,20 @@
+{
+    "name": "codeq/zoom",
+    "description": "Gets upcoming Zoom meetings and Zoom recordings via Eel Helper",
+    "type": "neos-package",
+    "require": {
+        "neos/neos":  "^5.0 || ^7.0 || dev-master",
+        "guzzlehttp/guzzle": "^7.4",
+        "firebase/php-jwt": "^5.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "CodeQ\\Zoom\\": "Classes/"
+        }
+    },
+    "extra": {
+        "neos": {
+            "package-key": "CodeQ.ZoomApi"
+        }
+    }
+}
