@@ -2,7 +2,9 @@
 declare(strict_types=1);
 namespace CodeQ\ZoomApi\Domain\Service;
 
+use DateInterval;
 use DateTime;
+use DateTimeImmutable;
 use Exception;
 use Firebase\JWT\JWT;
 use GuzzleHttp\Client;
@@ -57,7 +59,7 @@ class ZoomApiService
 
     /**
      * See also https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetings
-     * 
+     *
      * @return array
      * @throws Exception
      */
@@ -71,7 +73,7 @@ class ZoomApiService
 
     /**
      * See also https://marketplace.zoom.us/docs/api-reference/zoom-api/cloud-recording/recordingget
-     * 
+     *
      * @param DateTime|string $from
      * @param DateTime|string $to
      * @return array
@@ -79,22 +81,60 @@ class ZoomApiService
      */
     public function getRecordings($from, $to): array
     {
-        if(is_string($from)) {
-            $from = new DateTime($from);
+        if (is_string($from)) {
+            $from = new DateTimeImmutable($from);
+        } elseIf($from instanceof DateTime) {
+            $from = DateTimeImmutable::createFromMutable($from);
         }
-        if(is_string($to)) {
-            $to = new DateTime($to);
+
+        if (is_string($to)) {
+            $to = new DateTimeImmutable($to);
+        } elseIf($to instanceof DateTime) {
+            $to = DateTimeImmutable::createFromMutable($to);
         }
+
+        if ($from > $to) {
+            throw new \InvalidArgumentException('The from date must be after the to date');
+        }
+
         return $this->fetchData(
             "users/me/recordings?from={$from->format('Y-m-d')}&to={$to->format('Y-m-d')}",
             'meetings'
         );
     }
 
-    /**
-     * @throws Exception
-     */
-    private function fetchData($uri, string $paginatedDataKey): array
+    private function fetchData(DateTimeImmutable $from, DateTimeImmutable $to): array
+    {
+        $aggregatedData = [];
+        $fromOriginal = clone $from;
+
+        do {
+            $getMoreMonths = false;
+
+            // The zoom API only returns up to one month per request, so if the date range between $from and $to is
+            // bigger than one month we chunk our requests. We start by our $to date and subtract one month from it.
+            if ($this->dateDifferenceIsBiggerThanOneMonth($from, $to)) {
+                $from = $to->sub(DateInterval::createFromDateString('1 month'));
+                $getMoreMonths = true;
+            }
+
+            $responseData = $this->fetchDataForDaterange(
+                "users/me/recordings?from={$from->format('Y-m-d')}&to={$to->format('Y-m-d')}",
+                'meetings'
+            );
+
+            $aggregatedData = array_merge($aggregatedData, $responseData);
+
+            if ($getMoreMonths) {
+                $to = $from;
+                $from = $fromOriginal;
+            }
+        } while ($getMoreMonths);
+
+        return $aggregatedData;
+    }
+
+    private function fetchDataForDaterange($uri, string $paginatedDataKey): array
     {
         $aggregatedData = [];
         $nextPageToken = '';
@@ -103,7 +143,8 @@ class ZoomApiService
             $responseData = $this->fetchPaginatedData("$uri&next_page_token=$nextPageToken&page_size=300");
 
             if (!array_key_exists($paginatedDataKey, $responseData)) {
-                throw new Exception("Could not find key $paginatedDataKey. Response data: ".print_r($aggregatedData, true));
+                throw new Exception("Could not find key $paginatedDataKey. Response data: ".print_r($aggregatedData,
+                        true));
             }
 
             $aggregatedData = array_merge($aggregatedData, $responseData[$paginatedDataKey]);
@@ -116,7 +157,12 @@ class ZoomApiService
     private function fetchPaginatedData(string $uri): array
     {
         $response = $this->client->get($uri);
-        return json_decode($response->getBody()->getContents(), true);
+
+        return json_decode($response->getBody(), true);
     }
 
+    private function dateDifferenceIsBiggerThanOneMonth(DateTimeImmutable $from, DateTimeImmutable $to): bool
+    {
+        return $from->diff($to)->format('%m') > 0;
+    }
 }
