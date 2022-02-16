@@ -83,13 +83,13 @@ class ZoomApiService
     {
         if (is_string($from)) {
             $from = new DateTimeImmutable($from);
-        } elseIf($from instanceof DateTime) {
+        } elseIf ($from instanceof DateTime) {
             $from = DateTimeImmutable::createFromMutable($from);
         }
 
         if (is_string($to)) {
             $to = new DateTimeImmutable($to);
-        } elseIf($to instanceof DateTime) {
+        } elseIf ($to instanceof DateTime) {
             $to = DateTimeImmutable::createFromMutable($to);
         }
 
@@ -97,13 +97,10 @@ class ZoomApiService
             throw new \InvalidArgumentException('The from date must be after the to date');
         }
 
-        return $this->fetchData(
-            "users/me/recordings?from={$from->format('Y-m-d')}&to={$to->format('Y-m-d')}",
-            'meetings'
-        );
+        return $this->fetchDataForDateRange($from, $to);
     }
 
-    private function fetchData(DateTimeImmutable $from, DateTimeImmutable $to): array
+    private function fetchDataForDateRange(DateTimeImmutable $from, DateTimeImmutable $to): array
     {
         $aggregatedData = [];
         $fromOriginal = clone $from;
@@ -118,7 +115,7 @@ class ZoomApiService
                 $getMoreMonths = true;
             }
 
-            $responseData = $this->fetchDataForDaterange(
+            $responseData = $this->fetchData(
                 "users/me/recordings?from={$from->format('Y-m-d')}&to={$to->format('Y-m-d')}",
                 'meetings'
             );
@@ -134,7 +131,7 @@ class ZoomApiService
         return $aggregatedData;
     }
 
-    private function fetchDataForDaterange($uri, string $paginatedDataKey): array
+    private function fetchData($uri, string $paginatedDataKey): array
     {
         $aggregatedData = [];
         $nextPageToken = '';
