@@ -104,6 +104,7 @@ class ZoomApiService
     {
         $aggregatedData = [];
         $fromOriginal = clone $from;
+        $isFirstIteration = true;
 
         do {
             $getMoreMonths = false;
@@ -115,6 +116,12 @@ class ZoomApiService
                 $getMoreMonths = true;
             }
 
+            // If the current iteration is not the first iteration we have to subtract one day from our to-date
+            // because otherwise we query the recordings from this date twice.
+            if (!$isFirstIteration) {
+                $to = $to->sub(DateInterval::createFromDateString('1 day'));
+            }
+
             $responseData = $this->fetchData(
                 "users/me/recordings?from={$from->format('Y-m-d')}&to={$to->format('Y-m-d')}",
                 'meetings'
@@ -123,6 +130,7 @@ class ZoomApiService
             $aggregatedData = array_merge($aggregatedData, $responseData);
 
             if ($getMoreMonths) {
+                $isFirstIteration = false;
                 $to = $from;
                 $from = $fromOriginal;
             }
