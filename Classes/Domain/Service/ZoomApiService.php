@@ -8,6 +8,8 @@ use DateTimeImmutable;
 use Exception;
 use Firebase\JWT\JWT;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\RequestException;
 use Neos\Cache\Frontend\VariableFrontend;
 use Neos\Flow\Annotations as Flow;
 
@@ -16,11 +18,6 @@ use Neos\Flow\Annotations as Flow;
  */
 class ZoomApiService
 {
-    /**
-     * @var VariableFrontend
-     */
-    protected $entriesCache;
-
     private Client $client;
 
     /**
@@ -142,19 +139,23 @@ class ZoomApiService
     private function fetchData($uri, string $paginatedDataKey): array
     {
         $aggregatedData = [];
-        $nextPageToken = '';
+        try {
+            $nextPageToken = '';
 
-        do {
-            $responseData = $this->fetchPaginatedData("$uri&next_page_token=$nextPageToken&page_size=300");
+            do {
+                $responseData = $this->fetchPaginatedData("$uri&next_page_token=$nextPageToken&page_size=300");
 
-            if (!array_key_exists($paginatedDataKey, $responseData)) {
-                throw new Exception("Could not find key $paginatedDataKey. Response data: ".print_r($aggregatedData,
-                        true));
-            }
+                if (!array_key_exists($paginatedDataKey, $responseData)) {
+                    throw new Exception("Could not find key $paginatedDataKey. Response data: "
+                        . print_r($aggregatedData,
+                            true));
+                }
 
-            $aggregatedData = array_merge($aggregatedData, $responseData[$paginatedDataKey]);
-            $nextPageToken = $responseData['next_page_token'];
-        } while ($nextPageToken != '');
+                $aggregatedData = array_merge($aggregatedData, $responseData[$paginatedDataKey]);
+                $nextPageToken = $responseData['next_page_token'];
+            } while ($nextPageToken != '');
+        } catch (RequestException $e) {
+        }
 
         return $aggregatedData;
     }
