@@ -1,0 +1,9 @@
+CodeQ\ZoomApi\Domain\Service\ZoomApiService:
+  properties:
+    requestsCache:
+      object:
+        factoryObjectName: Neos\Flow\Cache\CacheManager
+        factoryMethodName: getCache
+        arguments:
+          1:
+            value: CodeQ_ZoomApi_Requests
