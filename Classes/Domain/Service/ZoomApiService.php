@@ -27,6 +27,11 @@ class ZoomApiService
     protected array $settings;
 
     /**
+     * @var VariableFrontend
+     */
+    protected $requestsCache;
+
+    /**
      * @throws Exception
      */
     public function initializeObject(): void
@@ -62,10 +67,19 @@ class ZoomApiService
      */
     public function getUpcomingMeetings(): array
     {
-        return $this->fetchData(
+        $cacheEntryIdentifier = 'upcomingMeetings';
+
+        /** @var array|bool $upcomingMeetings */
+        if (($upcomingMeetings = $this->requestsCache->get($cacheEntryIdentifier)) !== false) {
+            return $upcomingMeetings;
+        }
+
+        $upcomingMeetings = $this->fetchData(
             "users/me/meetings?type=upcoming",
             'meetings'
         );
+        $this->requestsCache->set($cacheEntryIdentifier, $upcomingMeetings);
+        return $upcomingMeetings;
     }
 
     /**
@@ -78,6 +92,13 @@ class ZoomApiService
      */
     public function getRecordings($from, $to): array
     {
+        $cacheEntryIdentifier = sprintf('recordings_%s_%s', $from, $to);
+
+        /** @var array|bool $recordings */
+        if (($recordings = $this->requestsCache->get($cacheEntryIdentifier)) !== false) {
+            return $recordings;
+        }
+
         if (is_string($from)) {
             $from = new DateTimeImmutable($from);
         } elseIf ($from instanceof DateTime) {
@@ -94,7 +115,9 @@ class ZoomApiService
             throw new \InvalidArgumentException('The from date must be after the to date');
         }
 
-        return $this->fetchDataForDateRange($from, $to);
+        $recordings = $this->fetchDataForDateRange($from, $to);
+        $this->requestsCache->set($cacheEntryIdentifier, $recordings);
+        return $recordings;
     }
 
     private function fetchDataForDateRange(DateTimeImmutable $from, DateTimeImmutable $to): array
