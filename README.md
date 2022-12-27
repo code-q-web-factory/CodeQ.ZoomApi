@@ -34,3 +34,19 @@ CodeQ.ZoomApi.getRecordings(Date.create('2021-01-01'), Date.now())
 ```
 
 Be aware, that this helper currently does not implement caching.
+
+## Performance and Caching
+
+Beware, that the package does not cache the requests by default. Thus, using these Eel helpers on
+heavily frequented pages can lead to rate limit issues with the Zoom API. This package provides
+a request cache to tackle that issue. 
+
+By default, the cache is disabled. To enable the cache, configure the lifetime at your convenience:
+
+```yaml
+CodeQ_ZoomApi_Requests:
+  backendOptions:
+    defaultLifetime: 600 # e.g. 60 seconds * 10 minutes = 600 seconds
+```
+
+Of course, you can also switch to a different cache backend at your convenience.
