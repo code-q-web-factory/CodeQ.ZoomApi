@@ -101,6 +101,13 @@ class ZoomApiService
      */
     public function getRecordings(mixed $from, mixed $to, bool $skipCache = false): array
     {
+        $cacheEntryIdentifier = sprintf('recordings_%s_%s', is_string($from) ? $from : $from->format('Y-m-d'), is_string($to) ? $to : $to->format('Y-m-d'));
+
+        /** @var array|bool $recordings */
+        if (!$skipCache && ($recordings = $this->requestsCache->get($cacheEntryIdentifier)) !== false) {
+            return $recordings;
+        }
+
         if (is_string($from)) {
             $from = new DateTimeImmutable($from);
         } elseIf ($from instanceof DateTime) {
@@ -111,12 +118,6 @@ class ZoomApiService
             $to = new DateTimeImmutable($to);
         } elseIf ($to instanceof DateTime) {
             $to = DateTimeImmutable::createFromMutable($to);
-        }
-
-        $cacheEntryIdentifier = sprintf('recordings_%s_%s', $from->format('U'), $to->format('U'));
-        /** @var array|bool $recordings */
-        if (!$skipCache && ($recordings = $this->requestsCache->get($cacheEntryIdentifier)) !== false) {
-            return $recordings;
         }
 
         if ($from > $to) {
