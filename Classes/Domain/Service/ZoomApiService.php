@@ -8,10 +8,11 @@ use DateTimeImmutable;
 use Exception;
 use Firebase\JWT\JWT;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
+use InvalidArgumentException;
 use Neos\Cache\Frontend\VariableFrontend;
 use Neos\Flow\Annotations as Flow;
+use Neos\Cache\Exception as CacheException;
 
 /**
  * @Flow\Scope("singleton")
@@ -62,15 +63,16 @@ class ZoomApiService
     /**
      * See also https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetings
      *
+     * @param bool $skipCache Omits reading from the cache, to force fetching from the API
+     *
      * @return array
-     * @throws Exception
      */
-    public function getUpcomingMeetings(): array
+    public function getUpcomingMeetings(bool $skipCache = false): array
     {
         $cacheEntryIdentifier = 'upcomingMeetings';
 
         /** @var array|bool $upcomingMeetings */
-        if (($upcomingMeetings = $this->requestsCache->get($cacheEntryIdentifier)) !== false) {
+        if (!$skipCache && ($upcomingMeetings = $this->requestsCache->get($cacheEntryIdentifier)) !== false) {
             return $upcomingMeetings;
         }
 
@@ -78,7 +80,13 @@ class ZoomApiService
             "users/me/meetings?type=upcoming",
             'meetings'
         );
-        $this->requestsCache->set($cacheEntryIdentifier, $upcomingMeetings);
+
+        try {
+            $this->requestsCache->set($cacheEntryIdentifier, $upcomingMeetings);
+        } catch (CacheException $e) {
+            // If CacheException is thrown we just go on and fetch the recordings directly from Zoom
+        }
+
         return $upcomingMeetings;
     }
 
@@ -87,18 +95,12 @@ class ZoomApiService
      *
      * @param DateTime|string $from
      * @param DateTime|string $to
+     * @param bool            $skipCache Omits reading from the cache, to force fetching from the API
+     *
      * @return array
-     * @throws Exception
      */
-    public function getRecordings($from, $to): array
+    public function getRecordings(mixed $from, mixed $to, bool $skipCache = false): array
     {
-        $cacheEntryIdentifier = sprintf('recordings_%s_%s', $from, $to);
-
-        /** @var array|bool $recordings */
-        if (($recordings = $this->requestsCache->get($cacheEntryIdentifier)) !== false) {
-            return $recordings;
-        }
-
         if (is_string($from)) {
             $from = new DateTimeImmutable($from);
         } elseIf ($from instanceof DateTime) {
@@ -111,12 +113,24 @@ class ZoomApiService
             $to = DateTimeImmutable::createFromMutable($to);
         }
 
+        $cacheEntryIdentifier = sprintf('recordings_%s_%s', $from->format('U'), $to->format('U'));
+        /** @var array|bool $recordings */
+        if (!$skipCache && ($recordings = $this->requestsCache->get($cacheEntryIdentifier)) !== false) {
+            return $recordings;
+        }
+
         if ($from > $to) {
-            throw new \InvalidArgumentException('The from date must be after the to date');
+            throw new InvalidArgumentException('The from date must be after the to date');
         }
 
         $recordings = $this->fetchDataForDateRange($from, $to);
-        $this->requestsCache->set($cacheEntryIdentifier, $recordings);
+
+        try {
+            $this->requestsCache->set($cacheEntryIdentifier, $recordings);
+        } catch (CacheException $e) {
+            // If CacheException is thrown we just go on
+        }
+
         return $recordings;
     }
 
