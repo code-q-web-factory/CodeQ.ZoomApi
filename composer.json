@@ -4,7 +4,7 @@
     "type": "neos-package",
     "license": "GPL-3.0-or-later",
     "require": {
-        "neos/neos":  "^5.0 || ^7.0 || dev-master",
+        "neos/neos":  "^5.0 || ^7.0 || ^8.0 || dev-master",
         "guzzlehttp/guzzle": "^7.4",
         "firebase/php-jwt": "^5.5"
     },
