@@ -207,6 +207,8 @@ class ZoomApiService
 
     private function dateDifferenceIsBiggerThanOneMonth(DateTimeImmutable $from, DateTimeImmutable $to): bool
     {
-        return $from->diff($to)->format('%m') > 0;
+        $dateDifference = $from->diff($to);
+        $differenceInMonths = $dateDifference->y * 12 + $dateDifference->m;
+        return $differenceInMonths > 0;
     }
 }
