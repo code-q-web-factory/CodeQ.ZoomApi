@@ -15,14 +15,15 @@ We use semantic versioning so every breaking change will increase the major-vers
 
 ## Usage
 
-Create a Zoom App for your login:
+Create a Zoom Server-to-Server App for your login and grant the scopes `user:read:admin`, `meeting:read:admin` and `recording:read:admin`:
 
-```
+```yaml
 CodeQ:
   ZoomApi:
     auth:
-      apiKey: ''
-      apiSecret: ''
+      accountId: ''
+      clientId: ''
+      clientSecret: ''
 ```
 
 Then use the Eel helper:
@@ -32,8 +33,6 @@ CodeQ.ZoomApi.getUpcomingMeetings()
 CodeQ.ZoomApi.getRecordings('2021-01-01', 'now')
 CodeQ.ZoomApi.getRecordings(Date.create('2021-01-01'), Date.now())
 ```
-
-Be aware, that this helper currently does not implement caching.
 
 ## Performance and Caching
 

@@ -6,9 +6,7 @@ use DateInterval;
 use DateTime;
 use DateTimeImmutable;
 use Exception;
-use Firebase\JWT\JWT;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
 use InvalidArgumentException;
 use Neos\Cache\Frontend\VariableFrontend;
 use Neos\Flow\Annotations as Flow;
@@ -37,27 +35,22 @@ class ZoomApiService
      */
     public function initializeObject(): void
     {
-        $zoomApiKey = $this->settings['auth']['apiKey'];
-        $zoomApiSecret = $this->settings['auth']['apiSecret'];
-        if(!$zoomApiKey || !$zoomApiSecret) {
-            throw new Exception('Please set a Zoom API Key and Secret for CodeQ.ZoomApi to be able to authenticate.');
+        $zoomApiAccountId = $this->settings['auth']['accountId'];
+        $zoomApiClientId = $this->settings['auth']['clientId'];
+        $zoomApiClientSecret = $this->settings['auth']['clientSecret'];
+        if(!$zoomApiAccountId || !$zoomApiClientId || !$zoomApiClientSecret) {
+            throw new Exception('Please set a Zoom Account ID, Client ID and Secret for CodeQ.ZoomApi to be able to authenticate.');
         }
+
+        $accessToken = $this->getAccessToken($zoomApiAccountId, $zoomApiClientId, $zoomApiClientSecret);
 
         $this->client = (new Client([
             'base_uri' => 'https://api.zoom.us/v2/',
             'headers' => [
-                'Authorization' => "Bearer {$this->generateJwt($zoomApiKey, $zoomApiSecret)}",
+                'Authorization' => "Bearer $accessToken",
                 'Content-Type' => 'application/json',
             ],
         ]));
-    }
-
-    private function generateJwt(string $zoomApiKey, string $zoomApiSecret): string
-    {
-        return JWT::encode([
-            "iss" => $zoomApiKey,
-            "exp" => time() + 60,
-        ], $zoomApiSecret, 'HS256');
     }
 
     /**
@@ -71,7 +64,7 @@ class ZoomApiService
     {
         $cacheEntryIdentifier = 'upcomingMeetings';
 
-        /** @var array|bool $upcomingMeetings */
+        /** @var array $upcomingMeetings */
         if (!$skipCache && ($upcomingMeetings = $this->requestsCache->get($cacheEntryIdentifier)) !== false) {
             return $upcomingMeetings;
         }
@@ -84,7 +77,7 @@ class ZoomApiService
         try {
             $this->requestsCache->set($cacheEntryIdentifier, $upcomingMeetings);
         } catch (CacheException $e) {
-            // If CacheException is thrown we just go on and fetch the recordings directly from Zoom
+            // If CacheException is thrown we just go on and fetch the items directly from Zoom
         }
 
         return $upcomingMeetings;
@@ -103,20 +96,20 @@ class ZoomApiService
     {
         $cacheEntryIdentifier = sprintf('recordings_%s_%s', is_string($from) ? $from : $from->format('Y-m-d'), is_string($to) ? $to : $to->format('Y-m-d'));
 
-        /** @var array|bool $recordings */
+        /** @var array $recordings */
         if (!$skipCache && ($recordings = $this->requestsCache->get($cacheEntryIdentifier)) !== false) {
             return $recordings;
         }
 
         if (is_string($from)) {
             $from = new DateTimeImmutable($from);
-        } elseIf ($from instanceof DateTime) {
+        } elseif ($from instanceof DateTime) {
             $from = DateTimeImmutable::createFromMutable($from);
         }
 
         if (is_string($to)) {
             $to = new DateTimeImmutable($to);
-        } elseIf ($to instanceof DateTime) {
+        } elseif ($to instanceof DateTime) {
             $to = DateTimeImmutable::createFromMutable($to);
         }
 
@@ -152,7 +145,7 @@ class ZoomApiService
             }
 
             // If the current iteration is not the first iteration we have to subtract one day from our to-date
-            // because otherwise we query the recordings from this date twice.
+            // because otherwise we query the items from this date twice.
             if (!$isFirstIteration) {
                 $to = $to->sub(DateInterval::createFromDateString('1 day'));
             }
@@ -177,32 +170,35 @@ class ZoomApiService
     private function fetchData($uri, string $paginatedDataKey): array
     {
         $aggregatedData = [];
-        try {
-            $nextPageToken = '';
+        $nextPageToken = '';
 
-            do {
-                $responseData = $this->fetchPaginatedData("$uri&next_page_token=$nextPageToken&page_size=300");
+        do {
+            $responseData = $this->fetchPaginatedData("$uri&next_page_token=$nextPageToken&page_size=300", $paginatedDataKey);
 
-                if (!array_key_exists($paginatedDataKey, $responseData)) {
-                    throw new Exception("Could not find key $paginatedDataKey. Response data: "
-                        . print_r($aggregatedData,
-                            true));
-                }
+            if (!array_key_exists($paginatedDataKey, $responseData)) {
+                throw new Exception("Could not find key $paginatedDataKey. Response data: "
+                    . print_r($aggregatedData,
+                        true));
+            }
 
-                $aggregatedData = array_merge($aggregatedData, $responseData[$paginatedDataKey]);
-                $nextPageToken = $responseData['next_page_token'];
-            } while ($nextPageToken != '');
-        } catch (RequestException $e) {
-        }
+            $aggregatedData = array_merge($aggregatedData, $responseData[$paginatedDataKey]);
+            $nextPageToken = $responseData['next_page_token'];
+        } while ($nextPageToken != '');
 
         return $aggregatedData;
     }
 
-    private function fetchPaginatedData(string $uri): array
+    private function fetchPaginatedData(string $uri, string $paginatedDataKey): array
     {
         $response = $this->client->get($uri);
-
-        return json_decode($response->getBody()->getContents(), true);
+        $bodyContents = $response->getBody()->getContents();
+        if ($bodyContents === "") {
+            return [
+                $paginatedDataKey => [],
+                "next_page_token" => ""
+            ];
+        }
+        return json_decode($bodyContents, true);
     }
 
     private function dateDifferenceIsBiggerThanOneMonth(DateTimeImmutable $from, DateTimeImmutable $to): bool
@@ -210,5 +206,42 @@ class ZoomApiService
         $dateDifference = $from->diff($to);
         $differenceInMonths = $dateDifference->y * 12 + $dateDifference->m;
         return $differenceInMonths > 0;
+    }
+
+    /**
+     * @param string $accountId
+     * @param string $zoomApiClientId
+     * @param string $zoomApiClientSecret
+     *
+     * @return string|null
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    private function getAccessToken(string $accountId, string $zoomApiClientId, string $zoomApiClientSecret): ?string
+    {
+        $client = new Client([
+            'base_uri' => 'https://zoom.us/',
+            'headers' => [
+                'Authorization' => "Basic " . base64_encode($zoomApiClientId . ':' . $zoomApiClientSecret),
+                'Content-Type' => 'application/json',
+            ],
+        ]);
+        $response = $client->post('oauth/token', [
+            'form_params' => [
+                'grant_type' => 'account_credentials',
+                'account_id' => $accountId
+            ]
+        ]);
+
+        if ($response->getStatusCode() !== 200) {
+            throw new Exception('Could not fetch Zoom access token. Please check the settings for account ID, client ID and client secret, as well as your Zoom app.', 1695040346621);
+        }
+
+        $responseBodyAsArray = json_decode($response->getBody()->getContents(), true);
+
+        if (!str_contains($responseBodyAsArray['scope'], 'user:read:admin') || !str_contains($responseBodyAsArray['scope'], 'recording:read:admin') || !str_contains($responseBodyAsArray['scope'], 'meeting:read:admin')) {
+            throw new Exception('Please ensure your Zoom app has the following scopes: user:read:admin, recording:read:admin, meeting:read:admin', 1695040540417);
+        }
+
+        return $responseBodyAsArray['access_token'];
     }
 }
