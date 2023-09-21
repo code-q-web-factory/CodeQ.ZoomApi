@@ -1,8 +1,9 @@
 CodeQ:
   ZoomApi:
     auth:
-      apiKey: ''
-      apiSecret: ''
+      accountId: ''
+      clientId: ''
+      clientSecret: ''
 
 Neos:
   Fusion:
