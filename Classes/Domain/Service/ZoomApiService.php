@@ -5,6 +5,7 @@ namespace CodeQ\ZoomApi\Domain\Service;
 use DateInterval;
 use DateTime;
 use DateTimeImmutable;
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use InvalidArgumentException;
@@ -68,7 +69,7 @@ class ZoomApiService
      * @param bool $skipCache Omits reading from the cache, to force fetching from the API
      *
      * @return array
-     * @throws GuzzleException
+     * @throws GuzzleException|ZoomApiException
      */
     public function getUpcomingMeetings(bool $skipCache = false): array
     {
@@ -105,7 +106,7 @@ class ZoomApiService
      * @param bool            $skipCache Omits reading from the cache, to force fetching from the API
      *
      * @return array
-     * @throws GuzzleException
+     * @throws GuzzleException|ZoomApiException|Exception
      */
     public function getRecordings(DateTime|string $from, DateTime|string $to, bool $skipCache = false): array
     {
@@ -118,13 +119,13 @@ class ZoomApiService
 
         if (is_string($from)) {
             $from = new DateTimeImmutable($from);
-        } elseif ($from instanceof DateTime) {
+        } else {
             $from = DateTimeImmutable::createFromMutable($from);
         }
 
         if (is_string($to)) {
             $to = new DateTimeImmutable($to);
-        } elseif ($to instanceof DateTime) {
+        } else {
             $to = DateTimeImmutable::createFromMutable($to);
         }
 
@@ -152,7 +153,7 @@ class ZoomApiService
      * @param DateTimeImmutable $to
      *
      * @return array
-     * @throws GuzzleException
+     * @throws GuzzleException|ZoomApiException
      */
     private function fetchDataForDateRange(DateTimeImmutable $from, DateTimeImmutable $to): array
     {
