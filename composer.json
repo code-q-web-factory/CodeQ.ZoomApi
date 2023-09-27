@@ -13,6 +13,12 @@
             "CodeQ\\ZoomApi\\": "Classes/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "CodeQ\\ZoomApi\\Tests\\": "Tests/",
+            "Neos\\Flow\\": "Packages/Framework/Neos.Flow/"
+        }
+    },
     "authors": [
         {
             "name": "Roland Schütz",
@@ -33,5 +39,13 @@
         "neos": {
             "package-key": "CodeQ.ZoomApi"
         }
+    },
+    "config": {
+        "allow-plugins": {
+            "neos/composer-plugin": true
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9"
     }
 }

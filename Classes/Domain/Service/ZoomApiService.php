@@ -30,7 +30,7 @@ class ZoomApiService
     protected array $settings;
 
     /**
-     * @var VariableFrontend
+     * @vatmpr VariableFrontend
      */
     protected $requestsCache;
 
@@ -54,7 +54,12 @@ class ZoomApiService
 
         $accessToken = $this->getAccessToken($zoomApiAccountId, $zoomApiClientId, $zoomApiClientSecret);
 
-        $this->client = (new Client([
+        $this->client = $this->buildClient($accessToken);
+    }
+
+    protected function buildClient(string $accessToken): Client
+    {
+        return (new Client([
             'base_uri' => 'https://api.zoom.us/v2/',
             'headers' => [
                 'Authorization' => "Bearer $accessToken",
@@ -254,7 +259,7 @@ class ZoomApiService
      * @return string|null
      * @throws GuzzleException|ZoomApiException
      */
-    private function getAccessToken(string $accountId, string $zoomApiClientId, string $zoomApiClientSecret): ?string
+    protected function getAccessToken(string $accountId, string $zoomApiClientId, string $zoomApiClientSecret): ?string
     {
         $client = new Client([
             'base_uri' => 'https://zoom.us/',
