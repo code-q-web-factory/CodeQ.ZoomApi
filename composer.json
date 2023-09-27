@@ -52,6 +52,6 @@
         "mikey179/vfsstream": "@stable"
     },
     "scripts": {
-        "test": "Packages/Libraries/phpunit/phpunit/phpunit --bootstrap /Users/GradinaruFelix/Sites/FlirtForschung/DistributionPackages/CodeQ.ZoomApi/Tests/UnitTestBootstrap.php --configuration /Users/GradinaruFelix/Sites/FlirtForschung/DistributionPackages/CodeQ.ZoomApi/Tests/phpunit.xml"
+        "test": "Packages/Libraries/phpunit/phpunit/phpunit --bootstrap Tests/UnitTestBootstrap.php --configuration Tests/phpunit.xml"
     }
 }
