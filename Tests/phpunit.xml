@@ -10,13 +10,12 @@
 		 timeoutForSmallTests="0">
 	<testsuites>
 		<testsuite name="All tests">
-			<directory>../../../Packages/*/*/Tests/Unit</directory>
-			<exclude>../../../Packages/Libraries</exclude>
+			<directory>Tests/Unit</directory>
 		</testsuite>
 	</testsuites>
 	<coverage includeUncoveredFiles="false">
 		<include>
-			<directory>../../../Packages/*/*/Classes</directory>
+			<directory>Classes</directory>
 		</include>
 	</coverage>
 	<logging>

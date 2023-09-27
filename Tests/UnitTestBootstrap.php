@@ -11,7 +11,7 @@ namespace Neos\Flow\Build;
  * source code.
  */
 
-$composerAutoloader = __DIR__ . '/../../../Packages/Libraries/autoload.php';
+$composerAutoloader = __DIR__ . '/../Packages/Libraries/autoload.php';
 if(!file_exists($composerAutoloader)) {
     exit(PHP_EOL . 'Neos Flow Bootstrap Error: The unit test bootstrap requires the autoloader file created at install time by Composer. Looked for "' . $composerAutoloader . '" without success.');
 }
@@ -23,8 +23,8 @@ if (!class_exists('org\bovigo\vfs\vfsStream')) {
 
 spl_autoload_register('Neos\Flow\Build\loadClassForTesting');
 
-$_SERVER['FLOW_ROOTPATH'] = dirname(__FILE__) . '/../../../';
-$_SERVER['FLOW_WEBPATH'] = dirname(__FILE__) . '/../../../Web/';
+$_SERVER['FLOW_ROOTPATH'] = dirname(__FILE__) . '/Packages/Framework/Neos.Flow/';
+$_SERVER['FLOW_WEBPATH'] = dirname(__FILE__) . '/Web/';
 new \Neos\Flow\Core\Bootstrap('Production');
 
 require_once(FLOW_PATH_FLOW . 'Tests/BaseTestCase.php');
