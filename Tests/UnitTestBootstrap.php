@@ -23,8 +23,8 @@ if (!class_exists('org\bovigo\vfs\vfsStream')) {
 
 spl_autoload_register('Neos\Flow\Build\loadClassForTesting');
 
-$_SERVER['FLOW_ROOTPATH'] = dirname(__FILE__) . '/Packages/Framework/Neos.Flow/';
-$_SERVER['FLOW_WEBPATH'] = dirname(__FILE__) . '/Web/';
+$_SERVER['FLOW_ROOTPATH'] = __DIR__ . '/../';
+$_SERVER['FLOW_WEBPATH'] = __DIR__ . '/../Web/';
 new \Neos\Flow\Core\Bootstrap('Production');
 
 require_once(FLOW_PATH_FLOW . 'Tests/BaseTestCase.php');
@@ -44,7 +44,7 @@ function loadClassForTesting($className) {
         return;
     }
 
-    foreach (new \DirectoryIterator(__DIR__ . '/../../../Packages/') as $fileInfo) {
+    foreach (new \DirectoryIterator(__DIR__ . '/../Packages') as $fileInfo) {
         if (!$fileInfo->isDir() || $fileInfo->isDot() || $fileInfo->getFilename() === 'Libraries') continue;
 
         $classFilePathAndName = $fileInfo->getPathname() . '/';

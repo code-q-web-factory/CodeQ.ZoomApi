@@ -30,7 +30,7 @@ class ZoomApiService
     protected array $settings;
 
     /**
-     * @vatmpr VariableFrontend
+     * @var VariableFrontend
      */
     protected $requestsCache;
 
@@ -115,27 +115,28 @@ class ZoomApiService
      */
     public function getRecordings(DateTime|string $from, DateTime|string $to, bool $skipCache = false): array
     {
-        $cacheEntryIdentifier = sprintf('recordings_%s_%s', is_string($from) ? $from : $from->format('Y-m-d'), is_string($to) ? $to : $to->format('Y-m-d'));
-
-        $recordings = $this->getCacheEntry($cacheEntryIdentifier);
-        if (!$skipCache && $recordings !== false) {
-            return $recordings;
-        }
-
         if (is_string($from)) {
             $from = new DateTimeImmutable($from);
         } else {
             $from = DateTimeImmutable::createFromMutable($from);
         }
+        assert($from instanceof DateTimeImmutable);
 
         if (is_string($to)) {
             $to = new DateTimeImmutable($to);
         } else {
             $to = DateTimeImmutable::createFromMutable($to);
         }
+        assert($to instanceof DateTimeImmutable);
 
         if ($from > $to) {
             throw new InvalidArgumentException('The from date must be after the to date');
+        }
+
+        $cacheEntryIdentifier = sprintf('recordings_%s_%s', $from->format('Y-m-d'), $to->format('Y-m-d'));
+        $recordings = $this->getCacheEntry($cacheEntryIdentifier);
+        if (!$skipCache && $recordings !== false) {
+            return $recordings;
         }
 
         $recordings = $this->fetchDataForDateRange($from, $to);

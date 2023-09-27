@@ -9,3 +9,5 @@ node_modules
 /bin
 /Packages
 composer.lock
+.phpunit.result.cache
+Tests/Reports

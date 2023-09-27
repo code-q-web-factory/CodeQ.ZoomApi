@@ -10,16 +10,16 @@
 		 timeoutForSmallTests="0">
 	<testsuites>
 		<testsuite name="All tests">
-			<directory>Tests/Unit</directory>
+			<directory>Unit</directory>
 		</testsuite>
 	</testsuites>
 	<coverage includeUncoveredFiles="false">
 		<include>
-			<directory>Classes</directory>
+			<directory>../Classes</directory>
 		</include>
 	</coverage>
 	<logging>
-		<junit outputFile="../../Reports/UnitTests.xml"/>
+		<junit outputFile="Reports/UnitTests.xml"/>
 	</logging>
 	<php>
 		<ini name="date.timezone" value="Europe/Vienna"/>

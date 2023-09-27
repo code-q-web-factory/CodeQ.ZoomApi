@@ -70,4 +70,38 @@ class ZoomApiHelperTest extends UnitTestCase
 
         $this->assertFalse($result);
     }
+
+    /** @test * */
+    public function canGetUpcomingMeetings(): void
+    {
+        $this->zoomApiServiceMock
+            ->expects($this->once())
+            ->method('getUpcomingMeetings')
+            ->with()
+            ->willReturn([]);
+
+
+        $result = $this->zoomApiHelper->getUpcomingMeetings();
+
+
+        $this->assertSame([], $result);
+    }
+
+    /** @test * */
+    public function canHandleGetUpcomingMeetingsException(): void
+    {
+        $this->zoomApiServiceMock
+            ->expects($this->once())
+            ->method('getUpcomingMeetings')
+            ->with()
+            ->willThrowException(new \Exception('Test Exception'));
+
+        $this->systemLoggerMock->shouldReceive('error')->once();
+
+
+        $result = $this->zoomApiHelper->getUpcomingMeetings();
+
+
+        $this->assertFalse($result);
+    }
 }
