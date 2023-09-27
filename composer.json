@@ -15,8 +15,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "CodeQ\\ZoomApi\\Tests\\": "Tests/",
-            "Neos\\Flow\\": "Packages/Framework/Neos.Flow/"
+            "CodeQ\\ZoomApi\\Tests\\": "Tests/"
         }
     },
     "authors": [
