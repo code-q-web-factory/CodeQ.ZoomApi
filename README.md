@@ -49,3 +49,11 @@ CodeQ_ZoomApi_Requests:
 ```
 
 Of course, you can also switch to a different cache backend at your convenience.
+
+
+## Testing
+
+To run the unit tests, execute the following commands:
+
+1. `composer install`
+2. `composer test`
