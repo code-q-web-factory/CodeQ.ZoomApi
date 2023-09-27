@@ -242,7 +242,13 @@ class ZoomApiService
             throw new ZoomApiException(sprintf('Could not fetch Zoom paginated data for data key "%s", returned status "%s"', $paginatedDataKey, $response->getStatusCode()), 1695239983421);
         }
         $bodyContents = $response->getBody()->getContents();
-        return json_decode($bodyContents, true);
+        $bodyContentsArray = json_decode($bodyContents, true);
+
+        if ($bodyContentsArray === null || !array_key_exists($paginatedDataKey, $bodyContentsArray)) {
+            throw new ZoomApiException(sprintf('Could not fetch Zoom paginated data for data key "%s", returned empty response', $paginatedDataKey), 1695828849253);
+        }
+
+        return $bodyContentsArray;
     }
 
     private function dateDifferenceIsBiggerThanOneMonth(DateTimeImmutable $from, DateTimeImmutable $to): bool

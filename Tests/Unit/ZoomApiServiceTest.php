@@ -224,8 +224,10 @@ class ZoomApiServiceTest extends UnitTestCase
     }
 
     /** @test */
-    public function getUpcomingMeetingsWithEmptyResponseReturnsEmptyResponse()
+    public function getUpcomingMeetingsWithEmptyResponseThrowsException()
     {
+        $this->expectException(ZoomApiException::class);
+
         $handlerStack = HandlerStack::create(
             new MockHandler([
                 new Response(200, [], ''),
@@ -238,9 +240,7 @@ class ZoomApiServiceTest extends UnitTestCase
         $this->cacheMock->method('get')->willReturn(false);
 
 
-        $result = $service->getUpcomingMeetings(true);
-
-        $this->assertEquals([], $result);
+        $service->getUpcomingMeetings(true);
     }
 
     /**
