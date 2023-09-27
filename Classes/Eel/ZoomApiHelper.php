@@ -39,10 +39,13 @@ class ZoomApiHelper implements ProtectedContextAwareInterface {
         try {
             return $this->zoomApiService->getRecordings($from, $to);
         } catch (Throwable $e) {
-            $this->systemLogger->error(sprintf('Could not get Zoom recordings, exception with code "%s" thrown: "%s"', $e->getCode(), $e->getMessage()), [
+            $context = [
                 ...LogEnvironment::fromMethodName(__METHOD__),
                 'trace' => $e->getTraceAsString()
-            ]);
+            ];
+            $this->systemLogger->error(sprintf('Could not get Zoom recordings, exception with code "%s" thrown: "%s"', $e->getCode(), $e->getMessage()),
+                $context
+            );
             return false;
         }
     }
