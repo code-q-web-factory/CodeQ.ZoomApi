@@ -47,6 +47,23 @@ class ZoomApiAccessTokenFactoryTest extends UnitTestCase
         $factoryMock->initializeObject();
     }
 
+    /** @test */
+    public function unsuccessfulRequestThrowsZoomApiException(): void
+    {
+        $this->expectException(ZoomApiException::class);
+        $this->expectExceptionMessage('Could not fetch Zoom access token. Please check the settings for account ID, client ID and client secret, as well as your Zoom app.');
+
+        $handlerStack = HandlerStack::create(
+            new MockHandler([
+                new Response(400)
+            ])
+        );
+        $factoryMock = $this->getFactory($handlerStack);
+
+
+        $factoryMock->createFromConfiguration();
+    }
+
     private function getFactory(HandlerStack $handlerStack = null): ZoomApiAccessTokenFactory|MockObject
     {
         $factory = $this->getAccessibleMock(ZoomApiAccessTokenFactory::class, ['buildClient'], [], '', false);
