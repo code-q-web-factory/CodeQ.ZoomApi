@@ -24,10 +24,10 @@ class ZoomApiService
     private Client $client;
 
     /**
-     * @Flow\InjectConfiguration
-     * @var array
+     * @Flow\Inject
+     * @var ZoomApiAccessTokenFactory
      */
-    protected array $settings;
+    protected $accessTokenFactory;
 
     /**
      * @var VariableFrontend
@@ -45,16 +45,8 @@ class ZoomApiService
      */
     public function initializeObject(): void
     {
-        $zoomApiAccountId = $this->settings['auth']['accountId'];
-        $zoomApiClientId = $this->settings['auth']['clientId'];
-        $zoomApiClientSecret = $this->settings['auth']['clientSecret'];
-        if (!$zoomApiAccountId || !$zoomApiClientId || !$zoomApiClientSecret) {
-            throw new ZoomApiException('Please set a Zoom Account ID, Client ID and Secret for CodeQ.ZoomApi to be able to authenticate.', 1695830249149);
-        }
-
-        $accessToken = $this->getAccessToken($zoomApiAccountId, $zoomApiClientId, $zoomApiClientSecret);
-
-        $this->client = $this->buildClient($accessToken);
+        $accessToken = $this->accessTokenFactory->createFromConfiguration();
+        $this->client = $this->buildClient($accessToken->accessToken);
     }
 
     protected function buildClient(string $accessToken): Client
@@ -120,14 +112,12 @@ class ZoomApiService
         } else {
             $from = DateTimeImmutable::createFromMutable($from);
         }
-        assert($from instanceof DateTimeImmutable);
 
         if (is_string($to)) {
             $to = new DateTimeImmutable($to);
         } else {
             $to = DateTimeImmutable::createFromMutable($to);
         }
-        assert($to instanceof DateTimeImmutable);
 
         if ($from > $to) {
             throw new InvalidArgumentException('The from date must be after the to date');
@@ -256,43 +246,6 @@ class ZoomApiService
         $dateDifference = $from->diff($to);
         $differenceInMonths = $dateDifference->y * 12 + $dateDifference->m;
         return $differenceInMonths > 0;
-    }
-
-    /**
-     * @param string $accountId
-     * @param string $zoomApiClientId
-     * @param string $zoomApiClientSecret
-     *
-     * @return string|null
-     * @throws GuzzleException|ZoomApiException
-     */
-    protected function getAccessToken(string $accountId, string $zoomApiClientId, string $zoomApiClientSecret): ?string
-    {
-        $client = new Client([
-            'base_uri' => 'https://zoom.us/',
-            'headers' => [
-                'Authorization' => "Basic " . base64_encode($zoomApiClientId . ':' . $zoomApiClientSecret),
-                'Content-Type' => 'application/json',
-            ],
-        ]);
-        $response = $client->post('oauth/token', [
-            'form_params' => [
-                'grant_type' => 'account_credentials',
-                'account_id' => $accountId
-            ]
-        ]);
-
-        if ($response->getStatusCode() !== 200) {
-            throw new ZoomApiException('Could not fetch Zoom access token. Please check the settings for account ID, client ID and client secret, as well as your Zoom app.', 1695040346621);
-        }
-
-        $responseBodyAsArray = json_decode($response->getBody()->getContents(), true);
-
-        if (!str_contains($responseBodyAsArray['scope'], 'user:read:admin') || !str_contains($responseBodyAsArray['scope'], 'recording:read:admin') || !str_contains($responseBodyAsArray['scope'], 'meeting:read:admin')) {
-            throw new ZoomApiException('Please ensure your Zoom app has the following scopes: user:read:admin, recording:read:admin, meeting:read:admin', 1695040540417);
-        }
-
-        return $responseBodyAsArray['access_token'];
     }
 
     /**
