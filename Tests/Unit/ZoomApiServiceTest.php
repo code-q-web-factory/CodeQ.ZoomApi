@@ -2,6 +2,8 @@
 
 namespace CodeQ\ZoomApi\Tests\Unit;
 
+use CodeQ\ZoomApi\Domain\Model\ZoomApiAccessToken;
+use CodeQ\ZoomApi\Domain\Service\ZoomApiAccessTokenFactory;
 use CodeQ\ZoomApi\Domain\Service\ZoomApiService;
 use CodeQ\ZoomApi\ZoomApiException;
 use DateTime;
@@ -19,11 +21,15 @@ use Psr\Log\LoggerInterface;
 
 class ZoomApiServiceTest extends UnitTestCase
 {
-    protected MockObject $cacheMock;
-    private LoggerInterface $systemLoggerMock;
+    protected ZoomApiAccessTokenFactory|MockObject $accessTokenFactoryMock;
+    protected VariableFrontend|MockObject $cacheMock;
+    private LoggerInterface|MockObject $systemLoggerMock;
 
     protected function setUp(): void
     {
+        $this->accessTokenFactoryMock = Mockery::mock(ZoomApiAccessTokenFactory::class, [
+            'createFromConfiguration' => new ZoomApiAccessToken('123456789', [])
+        ]);
         $this->cacheMock = $this->getMockBuilder(VariableFrontend::class)->disableOriginalConstructor()->getMock();
         $this->systemLoggerMock = Mockery::mock(LoggerInterface::class);
     }
@@ -37,7 +43,6 @@ class ZoomApiServiceTest extends UnitTestCase
                 new Response(200, [], json_encode(['meetings' => ['meeting2'], 'next_page_token' => ''])),
             ])
         );
-        $client = new Client(['handler' => $handlerStack]);
 
 
 
@@ -45,7 +50,7 @@ class ZoomApiServiceTest extends UnitTestCase
             ->method('get')
             ->willReturn(false);
 
-        $service = $this->getService($client);
+        $service = $this->getService($handlerStack);
         $service->initializeObject();
 
 
@@ -58,14 +63,12 @@ class ZoomApiServiceTest extends UnitTestCase
     /** @test */
     public function getRecordingsWithStringDatesAndValidCacheReturnsCachedData()
     {
-        $client = new Client();
-
         $this->cacheMock = $this->getMockBuilder(VariableFrontend::class)->disableOriginalConstructor()->getMock();
         $this->cacheMock->expects($this->once())
             ->method('get')
             ->willReturn(['cached123']);
 
-        $service = $this->getService($client);
+        $service = $this->getService();
         $service->initializeObject();
 
 
@@ -83,9 +86,8 @@ class ZoomApiServiceTest extends UnitTestCase
                 new Response(200, [], json_encode(['meetings' => ['meeting2'], 'next_page_token' => ''])),
             ])
         );
-        $client = new Client(['handler' => $handlerStack]);
 
-        $service = $this->getService($client);
+        $service = $this->getService($handlerStack);
         $service->initializeObject();
         $this->cacheMock->method('get')->willReturn(false);
 
@@ -105,9 +107,8 @@ class ZoomApiServiceTest extends UnitTestCase
                 new Response(200, [], json_encode(['meetings' => ['meeting2'], 'next_page_token' => ''])),
             ])
         );
-        $client = new Client(['handler' => $handlerStack]);
 
-        $service = $this->getService($client);
+        $service = $this->getService($handlerStack);
         $service->initializeObject();
         $this->cacheMock->method('get')->willReturn(false);
 
@@ -129,9 +130,8 @@ class ZoomApiServiceTest extends UnitTestCase
                 new Response(200, [], json_encode(['meetings' => ['meeting4'], 'next_page_token' => ''])),
             ])
         );
-        $client = new Client(['handler' => $handlerStack]);
 
-        $service = $this->getService($client);
+        $service = $this->getService($handlerStack);
         $service->initializeObject();
         $this->cacheMock->method('get')->willReturn(false);
         $this->cacheMock->method('set')->willThrowException(new Exception());
@@ -148,9 +148,7 @@ class ZoomApiServiceTest extends UnitTestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The from date must be after the to date');
 
-        $client = new Client();
-
-        $service = $this->getService($client);
+        $service = $this->getService();
         $service->initializeObject();
         $this->cacheMock->method('get')->willReturn(false);
 
@@ -161,14 +159,12 @@ class ZoomApiServiceTest extends UnitTestCase
     /** @test */
     public function upcomingMeetingsReturnsValidCachedData()
     {
-        $client = new Client();
-
         $this->cacheMock = $this->getMockBuilder(VariableFrontend::class)->disableOriginalConstructor()->getMock();
         $this->cacheMock->expects($this->once())
             ->method('get')
             ->willReturn(['cached123']);
 
-        $service = $this->getService($client);
+        $service = $this->getService();
         $service->initializeObject();
 
 
@@ -186,9 +182,8 @@ class ZoomApiServiceTest extends UnitTestCase
                 new Response(200, [], json_encode(['meetings' => ['meeting2'], 'next_page_token' => ''])),
             ])
         );
-        $client = new Client(['handler' => $handlerStack]);
 
-        $service = $this->getService($client);
+        $service = $this->getService($handlerStack);
         $service->initializeObject();
         $this->cacheMock->method('get')->willReturn(false);
 
@@ -208,9 +203,8 @@ class ZoomApiServiceTest extends UnitTestCase
                 new Response(200, [], json_encode(['meetings' => ['meeting2'], 'next_page_token' => ''])),
             ])
         );
-        $client = new Client(['handler' => $handlerStack]);
 
-        $service = $this->getService($client);
+        $service = $this->getService($handlerStack);
         $service->initializeObject();
         $this->cacheMock->method('get')->willReturn(false);
         $this->cacheMock->method('set')->willThrowException(new Exception());
@@ -233,9 +227,8 @@ class ZoomApiServiceTest extends UnitTestCase
                 new Response(200, [], ''),
             ])
         );
-        $client = new Client(['handler' => $handlerStack]);
 
-        $service = $this->getService($client);
+        $service = $this->getService($handlerStack);
         $service->initializeObject();
         $this->cacheMock->method('get')->willReturn(false);
 
@@ -244,19 +237,16 @@ class ZoomApiServiceTest extends UnitTestCase
     }
 
     /**
-     * @param  \GuzzleHttp\Client  $client
-     * @return MockObject
+     * @param Client $client
+     *
+     * @return ZoomApiService|MockObject
      */
-    private function getService(Client $client): MockObject
+    private function getService(HandlerStack $handlerStack = null): ZoomApiService|MockObject
     {
-        $service = $this->getAccessibleMock(ZoomApiService::class, ['buildClient', 'getAccessToken'], [], '', false);
+        $service = $this->getAccessibleMock(ZoomApiService::class, ['buildClient'], [], '', false);
+        $client = new Client(['handler' => $handlerStack]);
         $service->method('buildClient')->willReturn($client);
-        $service->method('getAccessToken')->willReturn('1234567890');
-        $this->inject(
-            $service,
-            'settings',
-            ['auth' => ['accountId' => '1234567890', 'clientId' => '1234567890', 'clientSecret' => '1234567890']]
-        );
+        $this->inject($service, 'accessTokenFactory', $this->accessTokenFactoryMock);
         $this->inject($service, 'requestsCache', $this->cacheMock);
         $this->inject($service, 'systemLogger', $this->systemLoggerMock);
 
