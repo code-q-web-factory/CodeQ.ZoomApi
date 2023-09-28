@@ -35,7 +35,7 @@ class ZoomApiServiceTest extends UnitTestCase
     }
 
     /** @test */
-    public function it_can_fetch_data()
+    public function canFetchData(): void
     {
         $handlerStack = HandlerStack::create(
             new MockHandler([

@@ -69,10 +69,9 @@ class ZoomApiAccessTokenFactory
             throw new ZoomApiException('Please ensure your Zoom app has the following scopes: user:read:admin, recording:read:admin, meeting:read:admin', 1695040540417);
         }
 
-        $zoomApiAccessToken = new ZoomApiAccessToken(
+        return new ZoomApiAccessToken(
             $responseBodyAsArray['access_token'],
             explode(',', $responseBodyAsArray['scope']));
-        return $zoomApiAccessToken;
     }
 
     /**

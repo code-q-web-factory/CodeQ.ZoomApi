@@ -4,6 +4,7 @@ namespace CodeQ\ZoomApi\Tests\Unit;
 
 use CodeQ\ZoomApi\Domain\Model\ZoomApiAccessToken;
 use CodeQ\ZoomApi\Domain\Service\ZoomApiAccessTokenFactory;
+use CodeQ\ZoomApi\ZoomApiException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
@@ -22,8 +23,28 @@ class ZoomApiAccessTokenFactoryTest extends UnitTestCase
             ])
         );
         $factoryMock = $this->getFactory($handlerStack);
+
+
         $accessToken = $factoryMock->createFromConfiguration();
         $this->assertInstanceOf(ZoomApiAccessToken::class, $accessToken);
+    }
+
+    /** @test */
+    public function invalidConfigurationWillThrowException(): void
+    {
+        $this->expectException(ZoomApiException::class);
+        $this->expectExceptionMessage('Please set a Zoom Account ID, Client ID and Secret for CodeQ.ZoomApi to be able to authenticate.');
+
+
+        $factoryMock = $this->getFactory();
+        $this->inject(
+            $factoryMock,
+            'settings',
+            ['auth' => ['accountId' => '', 'clientId' => null, 'clientSecret' => false]]
+        );
+
+
+        $factoryMock->initializeObject();
     }
 
     private function getFactory(HandlerStack $handlerStack = null): ZoomApiAccessTokenFactory|MockObject
