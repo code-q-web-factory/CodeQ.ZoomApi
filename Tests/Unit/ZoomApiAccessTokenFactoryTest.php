@@ -47,7 +47,7 @@ class ZoomApiAccessTokenFactoryTest extends UnitTestCase
      * @dataProvider getInvalidConfigurations
      * @test
      */
-    public function invalidConfigurationWillThrowException($invalidConfiguration): void
+    public function invalidConfigurationWillThrowException(array $invalidConfiguration): void
     {
         $this->expectException(ZoomApiException::class);
         $this->expectExceptionMessage('Please set a Zoom Account ID, Client ID and Secret for CodeQ.ZoomApi to be able to authenticate.');
@@ -73,6 +73,39 @@ class ZoomApiAccessTokenFactoryTest extends UnitTestCase
         $handlerStack = HandlerStack::create(
             new MockHandler([
                 new Response(400)
+            ])
+        );
+        $factoryMock = $this->getFactory($handlerStack);
+
+
+        $factoryMock->createFromConfiguration();
+    }
+
+    public static function getInvalidAccessTokenScopes(): array
+    {
+        return [
+            ['recording:read:admin,meeting:read:admin'],
+            ['user:read:admin,meeting:read:admin'],
+            ['user:read:admin,recording:read:admin'],
+        ];
+    }
+
+    /**
+     * @test
+     * @dataProvider getInvalidAccessTokenScopes
+     * @param string $scopes
+     *
+     * @return void
+     */
+    public function missingAccessTokenScopesThrowsZoomApiException(string $scopes): void
+    {
+        $this->expectException(ZoomApiException::class);
+        $this->expectExceptionMessage('Please ensure your Zoom app has the following scopes: user:read:admin, recording:read:admin, meeting:read:admin');
+
+
+        $handlerStack = HandlerStack::create(
+            new MockHandler([
+                new Response(200, [], json_encode(['access_token' => '1234567890', 'scope' => $scopes]))
             ])
         );
         $factoryMock = $this->getFactory($handlerStack);

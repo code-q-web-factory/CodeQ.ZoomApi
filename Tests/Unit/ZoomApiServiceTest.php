@@ -238,7 +238,7 @@ class ZoomApiServiceTest extends UnitTestCase
     }
 
     /**
-     * @param Client $client
+     * @param HandlerStack|null $handlerStack
      *
      * @return ZoomApiService|MockObject
      */
