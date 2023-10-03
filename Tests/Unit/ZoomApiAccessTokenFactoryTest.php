@@ -29,8 +29,25 @@ class ZoomApiAccessTokenFactoryTest extends UnitTestCase
         $this->assertInstanceOf(ZoomApiAccessToken::class, $accessToken);
     }
 
-    /** @test */
-    public function invalidConfigurationWillThrowException(): void
+  public static function getInvalidConfigurations(): array
+    {
+        return [
+            [['auth' => ['accountId' => '1234567890', 'clientId' => '', 'clientSecret' => '1234567890']]],
+            [['auth' => ['accountId' => '1234567890', 'clientId' => '1234567890', 'clientSecret' => '']]],
+
+            [['auth' => ['accountId' => '1234567890', 'clientId' => null, 'clientSecret' => '1234567890']]],
+            [['auth' => ['accountId' => '1234567890', 'clientId' => '1234567890', 'clientSecret' => null]]],
+
+            [['auth' => ['accountId' => '1234567890', 'clientId' => false, 'clientSecret' => '1234567890']]],
+            [['auth' => ['accountId' => '1234567890', 'clientId' => '1234567890', 'clientSecret' => false]]],
+        ];
+    }
+
+    /**
+     * @dataProvider getInvalidConfigurations
+     * @test
+     */
+    public function invalidConfigurationWillThrowException($invalidConfiguration): void
     {
         $this->expectException(ZoomApiException::class);
         $this->expectExceptionMessage('Please set a Zoom Account ID, Client ID and Secret for CodeQ.ZoomApi to be able to authenticate.');
@@ -40,7 +57,7 @@ class ZoomApiAccessTokenFactoryTest extends UnitTestCase
         $this->inject(
             $factoryMock,
             'settings',
-            ['auth' => ['accountId' => '', 'clientId' => null, 'clientSecret' => false]]
+            $invalidConfiguration
         );
 
 

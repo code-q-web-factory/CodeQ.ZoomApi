@@ -107,7 +107,7 @@ class ZoomApiService
      */
     public function getRecordings(DateTime|string $from, DateTime|string $to, bool $skipCache = false): array
     {
-        list($from, $to) = $this->convertFromAndToAsDateTimeImmutable($from, $to);
+        [$from, $to] = $this->convertFromAndToAsDateTimeImmutable($from, $to);
 
         $cacheEntryIdentifier = sprintf('recordings_%s_%s', $from->format('Y-m-d'), $to->format('Y-m-d'));
         $recordings = $this->getCacheEntry($cacheEntryIdentifier);

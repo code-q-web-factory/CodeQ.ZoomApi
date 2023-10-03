@@ -143,6 +143,7 @@ class ZoomApiServiceTest extends UnitTestCase
         $this->assertEquals(['meeting1', 'meeting2', 'meeting3', 'meeting4'], $result);
     }
 
+/** @test */
     public function getRecordingsThrowsExceptionIfFromIsBiggerThanTo()
     {
         $this->expectException(InvalidArgumentException::class);

@@ -53,6 +53,7 @@ class ZoomApiAccessTokenFactory
             throw new ZoomApiException('Please set a Zoom Account ID for CodeQ.ZoomApi to be able to authenticate.', 1695904285296);
         }
         $response = $this->client->post('oauth/token', [
+            'http_errors' => false,
             'form_params' => [
                 'grant_type' => 'account_credentials',
                 'account_id' => $zoomApiAccountId
