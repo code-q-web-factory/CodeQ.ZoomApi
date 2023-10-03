@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace CodeQ\ZoomApi\Domain\Service;
 
+use CodeQ\ZoomApi\Utility\TimeUtility;
 use DateInterval;
 use DateTime;
 use DateTimeImmutable;
@@ -72,9 +73,9 @@ class ZoomApiService
     {
         $cacheEntryIdentifier = 'upcomingMeetings';
 
-        $upcomingMeetings = $this->getCacheEntry($cacheEntryIdentifier);
-        if (!$skipCache && $upcomingMeetings !== false) {
-            return $upcomingMeetings;
+        $cachedUpcomingMeetings = $this->getCacheEntry($cacheEntryIdentifier);
+        if (!$skipCache && $cachedUpcomingMeetings !== false) {
+            return $cachedUpcomingMeetings;
         }
 
         $upcomingMeetings = $this->fetchData(
@@ -107,12 +108,17 @@ class ZoomApiService
      */
     public function getRecordings(DateTime|string $from, DateTime|string $to, bool $skipCache = false): array
     {
-        [$from, $to] = $this->convertFromAndToAsDateTimeImmutable($from, $to);
+        $from = TimeUtility::convertStringOrDateTimeToDateTimeImmutable($from);
+        $to = TimeUtility::convertStringOrDateTimeToDateTimeImmutable($to);
+
+        if ($from > $to) {
+            throw new InvalidArgumentException('The from date must be after the to date');
+        }
 
         $cacheEntryIdentifier = sprintf('recordings_%s_%s', $from->format('Y-m-d'), $to->format('Y-m-d'));
-        $recordings = $this->getCacheEntry($cacheEntryIdentifier);
-        if (!$skipCache && $recordings !== false) {
-            return $recordings;
+        $cachedRecordings = $this->getCacheEntry($cacheEntryIdentifier);
+        if (!$skipCache && $cachedRecordings !== false) {
+            return $cachedRecordings;
         }
 
         $recordings = $this->fetchDataForDateRange($from, $to);
@@ -148,7 +154,7 @@ class ZoomApiService
 
             // The zoom API only returns up to one month per request, so if the date range between $from and $to is
             // bigger than one month we chunk our requests. We start by our $to date and subtract one month from it.
-            if ($this->dateDifferenceIsBiggerThanOneMonth($from, $to)) {
+            if (TimeUtility::dateDifferenceIsBiggerThanOneMonth($from, $to)) {
                 $from = $to->sub(DateInterval::createFromDateString('1 month'));
                 $getMoreMonths = true;
             }
@@ -227,13 +233,6 @@ class ZoomApiService
         return $bodyContentsArray;
     }
 
-    private function dateDifferenceIsBiggerThanOneMonth(DateTimeImmutable $from, DateTimeImmutable $to): bool
-    {
-        $dateDifference = $from->diff($to);
-        $differenceInMonths = $dateDifference->y * 12 + $dateDifference->m;
-        return $differenceInMonths > 0;
-    }
-
     /**
      * @param string $entryIdentifier
      *
@@ -242,32 +241,5 @@ class ZoomApiService
     private function getCacheEntry(string $entryIdentifier): array|bool
     {
         return $this->requestsCache->get($entryIdentifier);
-    }
-
-    /**
-     * @param DateTime|string $from
-     * @param DateTime|string $to
-     *
-     * @return DateTimeImmutable[]
-     * @throws Exception
-     */
-    protected function convertFromAndToAsDateTimeImmutable(DateTime|string $from, DateTime|string $to): array
-    {
-        if (is_string($from)) {
-            $from = new DateTimeImmutable($from);
-        } else {
-            $from = DateTimeImmutable::createFromMutable($from);
-        }
-
-        if (is_string($to)) {
-            $to = new DateTimeImmutable($to);
-        } else {
-            $to = DateTimeImmutable::createFromMutable($to);
-        }
-
-        if ($from > $to) {
-            throw new InvalidArgumentException('The from date must be after the to date');
-        }
-        return array($from, $to);
     }
 }
