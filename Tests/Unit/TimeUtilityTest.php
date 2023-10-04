@@ -1,6 +1,6 @@
 <?php
 
-namespace CodeQ\Tests\Unit;
+namespace CodeQ\ZoomApi\Tests\Unit;
 
 use CodeQ\ZoomApi\Utility\TimeUtility;
 use DateTimeImmutable;
