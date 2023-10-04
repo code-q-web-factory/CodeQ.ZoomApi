@@ -223,7 +223,9 @@ class ZoomApiService
      */
     private function fetchPaginatedData(string $uri, string $paginatedDataKey): array
     {
-        $response = $this->client->get($uri);
+        $response = $this->client->get($uri, [
+            'http_errors' => false
+        ]);
         if ($response->getStatusCode() !== 200) {
             throw new ZoomApiException(sprintf('Could not fetch Zoom paginated data for data key "%s", returned status "%s"', $paginatedDataKey, $response->getStatusCode()), 1695239983421);
         }
