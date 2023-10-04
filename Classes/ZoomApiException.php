@@ -6,5 +6,4 @@ use Neos\Flow\Exception;
 
 class ZoomApiException extends Exception
 {
-
 }

@@ -7,5 +7,6 @@ class ZoomApiAccessToken
     public function __construct(
         public readonly string $accessToken,
         public readonly array $scope
-    ) {}
+    ) {
+    }
 }

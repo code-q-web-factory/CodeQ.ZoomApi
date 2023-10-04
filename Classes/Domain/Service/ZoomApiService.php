@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace CodeQ\ZoomApi\Domain\Service;
 
 use CodeQ\ZoomApi\Utility\TimeUtility;
@@ -199,8 +201,10 @@ class ZoomApiService
 
             if (!array_key_exists($paginatedDataKey, $responseData)) {
                 throw new ZoomApiException("Could not find key $paginatedDataKey. Response data: "
-                    . print_r($aggregatedData,
-                        true));
+                    . print_r(
+                        $aggregatedData,
+                        true
+                    ));
             }
 
             $aggregatedData = array_merge($aggregatedData, $responseData[$paginatedDataKey]);

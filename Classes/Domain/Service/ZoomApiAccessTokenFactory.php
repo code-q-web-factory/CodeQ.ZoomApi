@@ -72,7 +72,8 @@ class ZoomApiAccessTokenFactory
 
         return new ZoomApiAccessToken(
             $responseBodyAsArray['access_token'],
-            explode(',', $responseBodyAsArray['scope']));
+            explode(',', $responseBodyAsArray['scope'])
+        );
     }
 
     /**
