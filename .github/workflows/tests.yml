@@ -1,0 +1,40 @@
+name: PHPUnit Tests
+
+on:
+  push:
+    branches: [ "main" ,"switch-to-s2s-oauth-apps-tests"]
+  pull_request:
+    branches: [ "main" ,"switch-to-s2s-oauth-apps-tests"]
+
+jobs:
+  run-tests:
+    name: "Test (PHP ${{ matrix.php-versions }}, Neos ${{ matrix.neos-versions }})"
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-versions: [ '8.1' ]
+        neos-versions: [ '7.3' ]
+        include:
+          - php-versions: '8.1'
+            neos-versions: '8.3'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+
+      - name: "Install PHP with extensions"
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+
+      - name: Set Neos Version
+        run: composer require neos/neos ^${{ matrix.neos-versions }} --no-progress --no-interaction
+
+      - name: Install Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Execute tests via PHPUnit
+        run: composer test

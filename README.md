@@ -1,5 +1,7 @@
 [![Latest Stable Version](https://poser.pugx.org/codeq/zoom-api/v/stable)](https://packagist.org/packages/codeq/zoom-api)
 [![License](https://poser.pugx.org/codeq/zoom-api/license)](LICENSE)
+[![Code Coverage](https://codecov.io/gh/code-q-web-factory/CodeQ.ZoomApi/branch/switch-to-s2s-oauth-apps-tests/graph/badge.svg)](https://codecov.io/gh/code-q-web-factory/CodeQ.ZoomApi)
+
 
 # CodeQ.ZoomApi
 
@@ -49,3 +51,11 @@ CodeQ_ZoomApi_Requests:
 ```
 
 Of course, you can also switch to a different cache backend at your convenience.
+
+
+## Testing
+
+To run the unit tests, execute the following commands:
+
+1. `composer install`
+2. `composer test`

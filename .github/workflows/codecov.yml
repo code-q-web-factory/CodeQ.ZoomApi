@@ -1,0 +1,31 @@
+name: "Code Coverage"
+
+on:
+  push:
+    branches: [ "main" ,"switch-to-s2s-oauth-apps-tests"]
+  pull_request:
+    branches: [ "main" ,"switch-to-s2s-oauth-apps-tests"]
+
+jobs:
+  code-coverage:
+
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install PHP with extensions
+        uses: shivammathur/setup-php@v2
+        with:
+          coverage: xdebug
+          php-version: '8.1'
+
+      - name: Install dependencies
+        run: composer update --ansi --no-interaction --no-progress --optimize-autoloader
+
+      - name: Collect code coverage with PHPUnit
+        run: Packages/Libraries/phpunit/phpunit/phpunit --bootstrap Tests/UnitTestBootstrap.php --configuration Tests/phpunit.xml --colors=always --coverage-clover=.build/logs/clover.xml
+
+      - name: Upload coverage reports to Codecov with GitHub Action
+        uses: codecov/codecov-action@v3

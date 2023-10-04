@@ -6,3 +6,8 @@ node_modules
 *.DS_Store
 /.idea
 .remote-sync.json
+/bin
+/Packages
+composer.lock
+.phpunit.result.cache
+Tests/Reports

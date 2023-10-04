@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace CodeQ\ZoomApi\Eel;
 
 use DateTime;
@@ -10,8 +12,8 @@ use Neos\Flow\Log\Utility\LogEnvironment;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
-class ZoomApiHelper implements ProtectedContextAwareInterface {
-
+class ZoomApiHelper implements ProtectedContextAwareInterface
+{
     /**
      * @Flow\Inject
      * @var ZoomApiService
@@ -73,7 +75,8 @@ class ZoomApiHelper implements ProtectedContextAwareInterface {
      * @param string $methodName
      * @return boolean
      */
-    public function allowsCallOfMethod($methodName) {
+    public function allowsCallOfMethod($methodName)
+    {
         return true;
     }
 }

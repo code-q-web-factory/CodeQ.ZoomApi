@@ -6,11 +6,16 @@
     "require": {
         "neos/neos":  "^7.0 || ^8.0 || dev-master",
         "guzzlehttp/guzzle": "^7.4",
-        "php": "^8"
+        "php": "^8.1"
     },
     "autoload": {
         "psr-4": {
             "CodeQ\\ZoomApi\\": "Classes/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "CodeQ\\ZoomApi\\Tests\\": "Tests/"
         }
     },
     "authors": [
@@ -33,5 +38,26 @@
         "neos": {
             "package-key": "CodeQ.ZoomApi"
         }
-    }
+    },
+    "config": {
+        "allow-plugins": {
+            "neos/composer-plugin": true
+        },
+        "vendor-dir": "Packages/Libraries",
+        "bin-dir": "bin"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "1.10.37",
+        "squizlabs/php_codesniffer": "^3.7",
+        "phpunit/phpunit": "^9",
+        "mockery/mockery": "@stable",
+        "mikey179/vfsstream": "@stable"
+    },
+    "scripts": {
+        "fix:style": "phpcbf --colors --standard=PSR12 Classes",
+        "test:style": "phpcs --colors -n --standard=PSR12 Classes",
+        "test:stan": "phpstan analyse Classes",
+        "test:unit": "Packages/Libraries/phpunit/phpunit/phpunit --bootstrap Tests/UnitTestBootstrap.php --configuration Tests/phpunit.xml",
+        "phpstan-cc": "phpstan clear cache",
+        "test": ["composer install", "composer test:unit", "composer test:style" , "composer test:stan"]    }
 }
