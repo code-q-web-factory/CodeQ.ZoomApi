@@ -36,7 +36,7 @@ class ZoomApiAccessTokenFactory
         $zoomApiClientId = $this->settings['auth']['clientId'];
         $zoomApiClientSecret = $this->settings['auth']['clientSecret'];
         if (!$zoomApiClientId || !$zoomApiClientSecret) {
-            throw new ZoomApiException('Please set a Zoom Account ID, Client ID and Secret for CodeQ.ZoomApi to be able to authenticate.', 1695830249149);
+            throw new ZoomApiException('Please set a Client ID and Secret for CodeQ.ZoomApi to be able to authenticate.', 1695830249149);
         }
         $this->client = $this->buildClient($zoomApiClientId, $zoomApiClientSecret);
     }

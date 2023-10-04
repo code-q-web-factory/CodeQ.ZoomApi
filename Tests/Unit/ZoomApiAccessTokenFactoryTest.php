@@ -50,7 +50,7 @@ class ZoomApiAccessTokenFactoryTest extends UnitTestCase
     public function invalidConfigurationWillThrowException(array $invalidConfiguration): void
     {
         $this->expectException(ZoomApiException::class);
-        $this->expectExceptionMessage('Please set a Zoom Account ID, Client ID and Secret for CodeQ.ZoomApi to be able to authenticate.');
+        $this->expectExceptionMessage('Please set a Client ID and Secret for CodeQ.ZoomApi to be able to authenticate.');
 
 
         $factoryMock = $this->getFactory();
